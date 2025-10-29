@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum OnlineShopType {
+  blibli     @map("Blibli")
+  tokopedia  @map("Tokopedia")
+  shopee     @map("Shopee")
+  lazada     @map("Lazada")
+  gojek      @map("Go-Jek")
+}
+
+enum MediaSosialType {
+  x          @map("X")
+  instagram  @map("Instagram")
+  facebook   @map("Facebook")
+  tiktok     @map("TikTok")
+}
+
+enum UmkmType {
+  kuliner @map("Kuliner")
+  fashion @map("Fashion")
+  kerajinan @map("Kerajinan")
+  jasa @map("Jasa")
+  pertanian @map("Bidang Pertanian")
+}
+
+model users {
+  id         BigInt   @id @default(autoincrement())
+  password   String?
+  email      String   @unique
+  username   String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  umkm       umkm[]
+}
+
+model umkm {
+  id          BigInt   @id @default(autoincrement())
+  user_id     BigInt
+  type        UmkmType
+  name        String
+  description String?
+  contact     String?
+  location    String?
+  logo        String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user          users          @relation(fields: [user_id], references: [id])
+  online_shop   online_shop[]
+  umkm_galeri   umkm_galeri[]
+  media_sosial  media_sosial[]
+}
+
+model online_shop {
+  id         BigInt         @id @default(autoincrement())
+  umkm_id    BigInt
+  type       OnlineShopType
+  url        String
+  created_at DateTime        @default(now())
+  updated_at DateTime        @updatedAt
+
+  umkm       umkm @relation(fields: [umkm_id], references: [id])
+}
+
+model umkm_galeri {
+  id         BigInt   @id @default(autoincrement())
+  umkm_id    BigInt
+  section    String
+  img_url    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  umkm       umkm @relation(fields: [umkm_id], references: [id])
+}
+
+model media_sosial {
+  id         BigInt          @id @default(autoincrement())
+  umkm_id    BigInt
+  type       MediaSosialType
+  url        String
+  created_at DateTime         @default(now())
+  updated_at DateTime         @updatedAt
+
+  umkm       umkm @relation(fields: [umkm_id], references: [id])
+}
