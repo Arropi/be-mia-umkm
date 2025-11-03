@@ -34,6 +34,8 @@ const authValidation = async(req, res, next)=>{
 
 const authLogin = async (req, res, next) => {
     try {
+        const username = z
+        .string('Invalid input on username').optional().parse(req.body.username)
         const email = z
         .email({
             error: (iss) =>

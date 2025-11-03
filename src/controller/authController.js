@@ -3,7 +3,7 @@ const { loginService, registerService } = require("../service/authService")
 const loginController = async (req, res) => {
     try {
         const data = req.body
-        const user = await loginService(data.email, data.password)
+        const user = await loginService(data.email, data.password, data.username)
         return res.status(200).json({
             'message': 'Login successfully',
             'data': user
@@ -28,6 +28,7 @@ const loginController = async (req, res) => {
 const registerController = async (req, res) => {
     try {
         const data = req.body
+        console.log(data)
         const user = await registerService(data.username, data.email, data.password)
         return res.status(201).json({
             'message': 'Register new user succesfully',

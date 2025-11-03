@@ -5,7 +5,8 @@ const bcrypt = require('bcryptjs')
 const registerService = async (username, email, password) => {
     try {
         const existUser = await getUserByEmail(email)
-        if (existUser ){
+        console.log(existUser)
+        if (existUser){
             throw Error('User has been registered', { cause: 'Bad Request'})
         }
         let hashPassword = null
@@ -21,16 +22,22 @@ const registerService = async (username, email, password) => {
     }
 }
 
-const loginService = async (email, password) => {
+const loginService = async (email, password, username) => {
     try {
         const existUser = await getUserByEmail(email)
         if (!existUser) {
             throw Error('User not found', { cause: 'Not Found'})
         }
-        if (await bcrypt.compare(password, existUser.password)) {
+        if(email && password) {
+            if (await bcrypt.compare(password, existUser.password)) {
+                return {...existUser, id: Number(existUser.id)}
+            } else {
+                throw Error('Wrong password, try another password', {cause: 'Bad Request'})
+            }
+        } else if( email === existUser.email && username === existUser.username) {
             return {...existUser, id: Number(existUser.id)}
         } else {
-            throw Error('Wrong password, try another password', {cause: 'Bad Request'})
+            throw Error('Invalid request form', { cause: 'Bad Request'})
         }
     } catch (error) {
         throw error
