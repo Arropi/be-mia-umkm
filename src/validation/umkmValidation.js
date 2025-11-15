@@ -54,6 +54,7 @@ const umkmValidation = async (req, res, next) => {
                     ? "Field Address Cannot Be Empty"
                     : "Invalid input on address",
         }).parse(req.body.location);
+        const gmaps = z.string().optional().url("Invalid URL on gmaps").parse(req.body.gmaps);
         const contact = z.string({
             error: (iss) =>
                 iss.input === undefined

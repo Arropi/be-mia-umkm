@@ -52,10 +52,11 @@ model umkm {
   user_id     BigInt
   type        UmkmType
   name        String
-  description String?
+  description String?   @db.Text
   contact     String?
   location    String?
   logo        String?
+  gmaps       String?
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 

@@ -31,6 +31,12 @@ const getUmkmByEmailService = async (email) => {
 
 const createUmkmService = async (umkmData, email) => {
     try {
+        const { id } = await getUserByEmail(email)
+        if (!id) {
+            throw Error("User Not Found", {
+                cause: "Not Found"
+            })
+        }
         const {
             name,
             type,
@@ -40,9 +46,9 @@ const createUmkmService = async (umkmData, email) => {
             logo,
             online_shop,
             media_sosial,
-            umkm_galeri
+            umkm_galeri,
+            gmaps
         } = umkmData;
-        const { id } = await getUserByEmail(email)
         const prismaData = {
             name,
             type,
@@ -50,6 +56,7 @@ const createUmkmService = async (umkmData, email) => {
             location,
             contact,
             logo,
+            gmaps,
             user_id: id,    
             ...(online_shop && online_shop.length > 0 && {
                 online_shop: {
@@ -89,10 +96,16 @@ const createUmkmService = async (umkmData, email) => {
 const updateUmkmService = async (email, umkmData) => {
     try {
         const { id } = await getUserByEmail(email)
+        if (!id) {
+            throw Error("User Not Found", {
+                cause: "Not Found"
+            })
+        }
         const {
             name,
             type,
             description,
+            gmaps,
             location,
             contact,
             logo,
@@ -107,6 +120,7 @@ const updateUmkmService = async (email, umkmData) => {
         location,
         contact,
         logo,
+        gmaps,
 
         ...(online_shop && {
             online_shop: {
@@ -151,6 +165,11 @@ const updateUmkmService = async (email, umkmData) => {
 const deleteUmkmService = async (email) => {
     try {
         const {id} = await getUserByEmail(email)
+        if (!id) {
+            throw Error("User Not Found", {
+                cause: "Not Found"
+            })
+        }
         const deletedUmkm = await deleteUmkm(id)
         const clearUmkm = bigintToNumber(deletedUmkm)
         return clearUmkm

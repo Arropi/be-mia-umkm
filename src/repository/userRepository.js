@@ -19,7 +19,7 @@ const createUser = async (username, email, password) => {
 
 const getUserByEmail = async (email) => {
     try {
-        const user = await prisma.users.findFirst({ where: { email: email}})
+        const user = await prisma.users.findUnique({ where: { email: email}})
         return user
     } catch (error) {
         console.log('Create User Repository User', error)
