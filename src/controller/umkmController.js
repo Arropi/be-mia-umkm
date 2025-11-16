@@ -41,7 +41,7 @@ const createUmkm = async (req, res) => {
         const user = req.user; // User from middleware
 
         // Check if user is admin or creating UMKM for their own email
-        if (!['admin', 'administrator'].includes(user.role) && email !== user.email) {
+        if (!['admin_umkm', 'administrator'].includes(user.role) && email !== user.email) {
             return res.status(403).json({
                 'message': 'Access denied. You can only create UMKM for yourself.'
             });
@@ -65,7 +65,7 @@ const updateUmkm = async (req, res) => {
         const user = req.user; // User from middleware
 
         // Check if user is admin or trying to update their own UMKM
-        if (!['admin', 'administrator'].includes(user.role) && email !== user.email) {
+        if (!['admin_umkm', 'administrator'].includes(user.role) && email !== user.email) {
             return res.status(403).json({
                 'message': 'Access denied. You can only update your own UMKM.'
             });
@@ -96,7 +96,7 @@ const deleteUmkm = async (req, res) => {
         const user = req.user; // User from middleware
 
         // Check if user is admin or trying to delete their own UMKM
-        if (!['admin', 'administrator'].includes(user.role) && email !== user.email) {
+        if (!['admin_umkm', 'administrator'].includes(user.role) && email !== user.email) {
             return res.status(403).json({
                 'message': 'Access denied. You can only delete your own UMKM.'
             });
