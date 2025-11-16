@@ -45,8 +45,8 @@ const deleteUser = async (req, res) => {
     const userId = parseInt(req.params.id);
     const user = req.user; // User from middleware
 
-    // Only admin can delete users
-    if (user.role !== 'admin') {
+    // Only admin or administrator can delete users
+    if (!['admin', 'administrator'].includes(user.role)) {
       return res.status(403).json({
         message: 'Access denied. Only admin can delete users.'
       });
