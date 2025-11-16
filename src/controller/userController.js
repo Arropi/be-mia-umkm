@@ -65,12 +65,24 @@ const deleteUser = async (req, res) => {
 
 const bulkCreateUsers = async (req, res) => {
   try {
+    console.log("Bulk create users request received");
     const usersArray = req.body.users; // Expecting { users: [...] }
-    if (!Array.isArray(usersArray)) {
+    
+    if (!usersArray) {
+      console.error("No users array in request body");
       return res.status(400).json({
         message: 'Request body must contain "users" array',
       });
     }
+
+    if (!Array.isArray(usersArray)) {
+      console.error("Users is not an array:", typeof usersArray);
+      return res.status(400).json({
+        message: 'Request body must contain "users" array',
+      });
+    }
+
+    console.log(`Processing ${usersArray.length} users`);
 
     const bcrypt = require("bcryptjs");
     const { createUser, getUserByEmail, updateUser } = require("../repository/userRepository");
@@ -80,7 +92,8 @@ const bulkCreateUsers = async (req, res) => {
       failed: [],
     };
 
-    for (const userData of usersArray) {
+    for (let i = 0; i < usersArray.length; i++) {
+      const userData = usersArray[i];
       try {
         const { username, email, password, name, address, role, whatsapp } = userData;
 
@@ -106,11 +119,11 @@ const bulkCreateUsers = async (req, res) => {
         // Hash password if provided, otherwise use default password
         let hashPassword;
         if (password) {
-          const salt = await bcrypt.genSalt();
+          const salt = await bcrypt.genSalt(10);
           hashPassword = await bcrypt.hash(password, salt);
         } else {
           // Default password if not provided
-          const salt = await bcrypt.genSalt();
+          const salt = await bcrypt.genSalt(10);
           hashPassword = await bcrypt.hash("password123", salt);
         }
 
@@ -130,7 +143,12 @@ const bulkCreateUsers = async (req, res) => {
           }
           
           const updatedUser = await updateUser(existingUser.id, updateData);
-          results.updated.push(updatedUser);
+          results.updated.push({
+            id: Number(updatedUser.id),
+            email: updatedUser.email,
+            username: updatedUser.username,
+            name: updatedUser.name,
+          });
         } else {
           // Create new user - password is required
           const newUser = await createUser(
@@ -142,50 +160,73 @@ const bulkCreateUsers = async (req, res) => {
             role || "admin_umkm",
             whatsapp || null
           );
-          results.created.push(newUser);
+          results.created.push({
+            id: Number(newUser.id),
+            email: newUser.email,
+            username: newUser.username,
+            name: newUser.name,
+          });
         }
       } catch (error) {
-        console.error("Error processing user:", error);
+        console.error(`Error processing user ${i + 1}:`, error);
         results.failed.push({
           data: userData,
-          error: error.message || "Unknown error",
+          error: error.message || error.toString() || "Unknown error",
         });
       }
     }
+
+    console.log(`Bulk upload completed: ${results.created.length} created, ${results.updated.length} updated, ${results.failed.length} failed`);
 
     return res.status(200).json({
       message: "Bulk upload users completed",
       data: results,
     });
   } catch (error) {
+    console.error("Bulk create users error:", error);
     return res.status(500).json({
       message: "Internal Server Error",
-      error: error.message,
+      error: error.message || error.toString(),
     });
   }
 };
 
 const updateUser = async (req, res) => {
   try {
-    const userId = parseInt(req.params.id);
+    const userFromToken = req.user; // User from middleware
     const userData = req.body;
-    const user = req.user; // User from middleware
+    let targetUserId;
 
-    // Check if user is admin or updating their own profile
-    if (user.role !== 'admin' && user.id !== userId) {
+    // If /:id is present, use it. Otherwise, it's /profile, so use token user's id.
+    if (req.params.id) {
+      targetUserId = parseInt(req.params.id, 10);
+    } else {
+      targetUserId = userFromToken.id;
+    }
+
+    const isAdmin = ['admin', 'administrator'].includes(userFromToken.role);
+    const isUpdatingOwnProfile = userFromToken.id === targetUserId;
+
+    // Admin can update anyone. Others can only update themselves.
+    if (!isAdmin && !isUpdatingOwnProfile) {
       return res.status(403).json({
-        message: 'Access denied. You can only update your own profile.'
+        message: "Access denied. You can only update your own profile."
       });
     }
 
-    const updatedUser = await updateUserService(userId, userData);
+    const updatedUser = await updateUserService(targetUserId, userData);
     return res.status(200).json({
       message: "User updated successfully",
       data: updatedUser,
     });
+
   } catch (error) {
+    // It's good practice to check for specific error types if possible
+    if (error.message.includes("not found")) { // Example check
+        return res.status(404).json({ message: error.message });
+    }
     return res.status(500).json({
-      message: error.message,
+      message: error.message || "An internal server error occurred",
     });
   }
 };

@@ -26,8 +26,11 @@ route.get("/all", authenticateToken, authorizeAdmin, getAllUsers);
 // Only admin can bulk create users
 route.post("/bulk", authenticateToken, authorizeAdmin, bulkCreateUsers);
 
-// Only admin can update any user, or users can update themselves (would need to check in controller)
-route.put("/:id", authenticateToken, authorizeAdmin, updateUser);
+// Specific endpoint for users to update their own profile
+route.put("/profile", authenticateToken, updateUser);
+
+// Admin can update any user, admin_umkm and other authenticated users can update their own profile
+route.put("/:id", authenticateToken, authorizeAdminUmkm, updateUser);
 
 // Only admin can delete users
 route.delete("/:id", authenticateToken, authorizeAdmin, deleteUser);

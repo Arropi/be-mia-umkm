@@ -2,6 +2,33 @@ const { getUmkms, getUmkmByEmail, updateUmkm, createUmkm, deleteUmkm } = require
 const { getUserByEmail } = require("../repository/userRepository")
 const { bigintToNumber } = require("../utils/function")
 
+// Helper function to normalize online shop type
+const normalizeOnlineShopType = (type) => {
+    if (!type) return type;
+    const typeMap = {
+        'gojek': 'GoJek',
+        'go-jek': 'GoJek',
+        'blibli': 'Blibli',
+        'tokopedia': 'Tokopedia',
+        'shopee': 'Shopee',
+        'lazada': 'Lazada'
+    };
+    return typeMap[type.toLowerCase()] || type;
+};
+
+// Helper function to normalize media sosial type
+const normalizeMediaSosialType = (type) => {
+    if (!type) return type;
+    const typeMap = {
+        'x': 'X',
+        'twitter': 'X',
+        'instagram': 'Instagram',
+        'facebook': 'Facebook',
+        'tiktok': 'TikTok'
+    };
+    return typeMap[type.toLowerCase()] || type;
+};
+
 const getAllUmkmService = async () => {
     try {
         const umkms = await getUmkms()
@@ -61,7 +88,7 @@ const createUmkmService = async (umkmData, email) => {
             ...(online_shop && online_shop.length > 0 && {
                 online_shop: {
                 create: online_shop.map(os => ({
-                    type: os.type,
+                    type: normalizeOnlineShopType(os.type),
                     url: os.url
                 }))
                 }
@@ -69,7 +96,7 @@ const createUmkmService = async (umkmData, email) => {
             ...(media_sosial && media_sosial.length > 0 && {
                 media_sosial: {
                 create: media_sosial.map(ms => ({
-                    type: ms.type,
+                    type: normalizeMediaSosialType(ms.type),
                     url: ms.url
                 }))
                 }
@@ -117,6 +144,7 @@ const updateUmkmService = async (email, umkmData) => {
             media_sosial,
             umkm_galeri
         } = umkmData;
+
         const prismaData = {
         name,
         type,
@@ -130,7 +158,7 @@ const updateUmkmService = async (email, umkmData) => {
             online_shop: {
             deleteMany: {},
             create: online_shop.map(os => ({
-                type: os.type,
+                type: normalizeOnlineShopType(os.type),
                 url: os.url
             }))
             }
@@ -140,7 +168,7 @@ const updateUmkmService = async (email, umkmData) => {
             media_sosial: {
             deleteMany: {},
             create: media_sosial.map(ms => ({
-                type: ms.type,
+                type: normalizeMediaSosialType(ms.type),
                 url: ms.url
             }))
             }
