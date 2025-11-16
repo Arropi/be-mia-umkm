@@ -14,26 +14,31 @@ datasource db {
 }
 
 enum OnlineShopType {
-  blibli     @map("Blibli")
-  tokopedia  @map("Tokopedia")
-  shopee     @map("Shopee")
-  lazada     @map("Lazada")
-  gojek      @map("Go-Jek")
+  Blibli
+  Tokopedia
+  Shopee
+  Lazada
+  GoJek      @map("Go-Jek")
 }
 
 enum MediaSosialType {
-  x          @map("X")
-  instagram  @map("Instagram")
-  facebook   @map("Facebook")
-  tiktok     @map("TikTok")
+  X
+  Instagram
+  Facebook
+  TikTok
 }
 
 enum UmkmType {
-  kuliner @map("Kuliner")
-  fashion @map("Fashion")
-  kerajinan @map("Kerajinan")
-  jasa @map("Jasa")
-  pertanian @map("Bidang Pertanian")
+  Kuliner
+  Fashion
+  Kerajinan
+  Jasa
+  Pertanian @map("Bidang Pertanian")
+}
+
+enum UserRole {
+  admin_umkm     @map("admin_umkm")
+  administrator  @map("administrator")
 }
 
 model users {
@@ -41,6 +46,10 @@ model users {
   password   String?
   email      String   @unique
   username   String?
+  name       String?
+  address    String?  @db.Text
+  whatsapp   String?
+  role       UserRole @default(admin_umkm)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -54,9 +63,9 @@ model umkm {
   name        String
   description String?   @db.Text
   contact     String?
-  location    String?
-  logo        String?
-  gmaps       String?
+  location    String?   @db.Text
+  logo        String?   @db.Text
+  gmaps       String?   @db.Text
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
@@ -70,9 +79,9 @@ model online_shop {
   id         BigInt         @id @default(autoincrement())
   umkm_id    BigInt
   type       OnlineShopType
-  url        String
-  created_at DateTime        @default(now())
-  updated_at DateTime        @updatedAt
+  url        String         @db.Text
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
 
   umkm       umkm @relation(fields: [umkm_id], references: [id])
 }
@@ -81,7 +90,7 @@ model umkm_galeri {
   id         BigInt   @id @default(autoincrement())
   umkm_id    BigInt
   section    String
-  img_url    String
+  img_url    String   @db.Text
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -92,9 +101,9 @@ model media_sosial {
   id         BigInt          @id @default(autoincrement())
   umkm_id    BigInt
   type       MediaSosialType
-  url        String
-  created_at DateTime         @default(now())
-  updated_at DateTime         @updatedAt
+  url        String          @db.Text
+  created_at DateTime        @default(now())
+  updated_at DateTime        @updatedAt
 
   umkm       umkm @relation(fields: [umkm_id], references: [id])
 }

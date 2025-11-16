@@ -6,9 +6,22 @@ const port = process.env.PORT
 const authRoute = require('./src/route/authRoute')
 const userRoute = require('./src/route/userRoute')
 const umkmRoute = require('./src/route/umkmRoute')
+const uploadRoute = require('./src/route/uploadRoute')
 
 app.use(express.json())
-app.use(cors())
+
+// CORS configuration
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://maps.googleapis.com',
+    'https://maps.google.com'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
+}
+app.use(cors(corsOptions))
 
 app.get('/', (req, res) => {
     res.json({
@@ -19,6 +32,7 @@ app.get('/', (req, res) => {
 app.use('/auth', authRoute)
 app.use('/user', userRoute)
 app.use('/api/umkm', umkmRoute)
+app.use('/upload', uploadRoute)
 
 app.listen(port, ()=> {
     console.log(`App listen on http://localhost:${port}`)

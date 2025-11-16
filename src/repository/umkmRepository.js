@@ -2,8 +2,12 @@ const prisma = require('../config/dbConfig')
 
 const getUmkmByEmail = async (email) => {
     try {
-        const umkm = await prisma.umkm.findUnique({
-            where: { email: email },
+        const umkm = await prisma.umkm.findFirst({
+            where: {
+                user: {
+                    email: email
+                }
+            },
             include: {
                 umkm_galeri: true,
                 user: true,

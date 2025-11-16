@@ -76,10 +76,12 @@ const createUmkmService = async (umkmData, email) => {
             }),
             ...(umkm_galeri && umkm_galeri.length > 0 && {
                 umkm_galeri: {
-                create: umkm_galeri.map(g => ({
-                    section: g.section,
-                    img_url: g.url      
-                }))
+                create: umkm_galeri
+                    .filter(g => g.img_url && typeof g.img_url === 'string' && g.img_url.trim() !== '') // More specific validation
+                    .map(g => ({
+                        section: g.section || 'Default Section', // Ensure section has a value
+                        img_url: g.img_url.trim()
+                    }))
                 }
             })
             };
@@ -95,12 +97,14 @@ const createUmkmService = async (umkmData, email) => {
 
 const updateUmkmService = async (email, umkmData) => {
     try {
-        const { id } = await getUserByEmail(email)
-        if (!id) {
-            throw Error("User Not Found", {
+        // First, get the UMKM by email to find its ID
+        const existingUmkm = await getUmkmByEmail(email)
+        if (!existingUmkm) {
+            throw Error("UMKM Not Found", {
                 cause: "Not Found"
             })
         }
+
         const {
             name,
             type,
@@ -124,7 +128,7 @@ const updateUmkmService = async (email, umkmData) => {
 
         ...(online_shop && {
             online_shop: {
-            deleteMany: {}, 
+            deleteMany: {},
             create: online_shop.map(os => ({
                 type: os.type,
                 url: os.url
@@ -142,18 +146,20 @@ const updateUmkmService = async (email, umkmData) => {
             }
         }),
 
-        ...(umkm_galeri && {
+        ...(umkm_galeri !== undefined && {
             umkm_galeri: {
-            deleteMany: {},
-            create: umkm_galeri.map(g => ({
-                section: g.section,
-                img_url: g.url
-            }))
+                deleteMany: {},
+                create: umkm_galeri
+                    .filter(g => g.img_url && typeof g.img_url === 'string' && g.img_url.trim() !== '') // More specific validation
+                    .map(g => ({
+                        section: g.section || 'Default Section', // Ensure section has a value
+                        img_url: g.img_url.trim()
+                    }))
             }
         })
         };
 
-        const updatedUmkm = await updateUmkm(id, prismaData)
+        const updatedUmkm = await updateUmkm(existingUmkm.id, prismaData)
         const clearUmkm = bigintToNumber(updatedUmkm)
         return clearUmkm
     } catch (error) {
