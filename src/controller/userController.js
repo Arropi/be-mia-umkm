@@ -92,44 +92,63 @@ const bulkCreateUsers = async (req, res) => {
           continue;
         }
 
+        if (!username) {
+          results.failed.push({
+            data: userData,
+            error: "Username is required",
+          });
+          continue;
+        }
+
         // Check if user already exists
         const existingUser = await getUserByEmail(email);
 
-        // Hash password if provided
-        let hashPassword = null;
+        // Hash password if provided, otherwise use default password
+        let hashPassword;
         if (password) {
           const salt = await bcrypt.genSalt();
           hashPassword = await bcrypt.hash(password, salt);
+        } else {
+          // Default password if not provided
+          const salt = await bcrypt.genSalt();
+          hashPassword = await bcrypt.hash("password123", salt);
         }
 
         if (existingUser) {
           // Update existing user
-          const updatedUser = await updateUser(existingUser.id, {
+          const updateData = {
             username: username || existingUser.username,
-            name: name || existingUser.name,
-            address: address || existingUser.address,
-            whatsapp: whatsapp || existingUser.whatsapp,
+            name: name !== undefined ? name : existingUser.name,
+            address: address !== undefined ? address : existingUser.address,
+            whatsapp: whatsapp !== undefined ? whatsapp : existingUser.whatsapp,
             role: role || existingUser.role,
-            ...(password && { password: hashPassword }),
-          });
+          };
+          
+          // Only update password if provided
+          if (password) {
+            updateData.password = hashPassword;
+          }
+          
+          const updatedUser = await updateUser(existingUser.id, updateData);
           results.updated.push(updatedUser);
         } else {
-          // Create new user
+          // Create new user - password is required
           const newUser = await createUser(
             username,
             email,
-            hashPassword ?? password,
-            name,
-            address,
-            role,
-            whatsapp
+            hashPassword,
+            name || null,
+            address || null,
+            role || "admin_umkm",
+            whatsapp || null
           );
           results.created.push(newUser);
         }
       } catch (error) {
+        console.error("Error processing user:", error);
         results.failed.push({
           data: userData,
-          error: error.message,
+          error: error.message || "Unknown error",
         });
       }
     }
